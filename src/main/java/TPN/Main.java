@@ -1,5 +1,6 @@
 package TPN;
 
+import javafx.scene.input.KeyCode;
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -9,15 +10,24 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Main extends PApplet {
     private Blob blob;
+    private static int inititialSizeOfBlob= 64;
     private CopyOnWriteArrayList<Blob> blobs;
     private int numberOfBlobs=50;
     private static int  width = 800;
     private static int  height = 800;
+    private int currentRadius;
+    private float zoom;
 
-    float zoom;
+    private int maxWidth = width;
+    private int minWidth = -width;
 
-    private int max = width;
-    private int min = -width;
+    private int maxHeight = height;
+    private int minHeight = -height;
+
+    private int maxRadius = 32;
+    private int minRadius = 16;
+
+    private Player player;
 
     public static void main(String args[]){
         PApplet.main("TPN.Main");
@@ -28,40 +38,53 @@ public class Main extends PApplet {
     }
 
     public void setup(){
+        currentRadius=inititialSizeOfBlob;
+        player = new Player(this,0,0,"Twan");
+        player.setup();
 
-        zoom = 1;
-        blob = new Blob(0,0,64);
+
         blobs = new CopyOnWriteArrayList<Blob>();
         for (int i = 0; i < numberOfBlobs; i++) {
-            Random random = new Random();
-            int randomX = random.nextInt(max + 1 -min) + min;
-            int randomY = random.nextInt(max + 1 -min) + min;
-
-            blobs.add(new Blob(randomX,randomY,16));
+            blobs.add(randomBlob());
         }
     }
 
     public void draw(){
         background(0);
-        translate(width/2,height/2);
-        float newZoom=blob.getRadius()/64;
-        zoom = lerp(zoom,newZoom,0.1f);
-        scale(zoom);
-        translate(-blob.getLocation().x,-blob.getLocation().y);
+        player.draw();
+
         for (Blob spawnedBlob:blobs) {
-            spawnedBlob.show(this,Color.WHITE);
+            spawnedBlob.show(this,spawnedBlob.getColor());
         }
 
         for (Blob spawnedBlob: blobs){
-            blob.eat(spawnedBlob);
+            player.getStartingBlob().eat(spawnedBlob);
             if(spawnedBlob.isEaten()){
                 blobs.remove(spawnedBlob);
+                blobs.add(randomBlob());
             }
         }
+    }
 
-        blob.show(this, Color.WHITE);
-        blob.controll(new PVector(mouseX,mouseY),3);
+    @Override
+    public void keyReleased() {
+        System.out.println("klik");
+        player.keyReleased();
+    }
 
+    public Blob randomBlob(){
+        Random random = new Random();
+        int randomX = random.nextInt(maxWidth + 1 -minWidth) + minWidth;
+        int randomY = random.nextInt(maxHeight + 1 -minHeight) + minHeight;
+        int randomRadius = random.nextInt(maxRadius + 1 -minRadius) + minRadius;
+
+        int red =random.nextInt(255);
+        int green =random.nextInt(255);
+        int blue =random.nextInt(255);
+
+        Color color = new Color(red,green,blue);
+
+        return new Blob(randomX,randomY,randomRadius,color);
 
     }
 
@@ -71,5 +94,9 @@ public class Main extends PApplet {
 
     public static int getHeight() {
         return height;
+    }
+
+    public static int getInititialSizeOfBlob() {
+        return inititialSizeOfBlob;
     }
 }

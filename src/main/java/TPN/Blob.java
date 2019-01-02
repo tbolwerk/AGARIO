@@ -12,14 +12,17 @@ public class Blob implements Controllable{
     private int x,y, radius;
     private PVector location;
     private boolean eaten=false;
-    public Blob(int x, int y, int radius){
+    private Color color;
+    public Blob(int x, int y, int radius, Color color){
         this.location = new PVector();
         this.location.add(x,y);
         this.radius=radius;
+        this.color=color;
     }
 
 
     public void show(PApplet app, Color color){
+        app.stroke(255);
         app.fill(color.getRGB());
         app.ellipse(location.x,location.y,radius*2,radius*2);
     }
@@ -39,9 +42,35 @@ public class Blob implements Controllable{
         }
     }
 
+    public Blob divide(PVector mouseLocation){
+        this.radius=radius/2;
+        return new Blob((int)mouseLocation.x,(int)mouseLocation.y,this.radius/2,this.color);
+    }
+
+    public void moveToCenter(PApplet app,Blob parent, Blob child, int magnitude){
+        PVector velocity = new PVector();
+        int distance= (int) PApplet.dist(this.location.x,this.location.y,child.getLocation().x,child.getLocation().y);
+        if(distance>this.radius+child.getRadius()) {
+
+
+            velocity.add(parent.location.x - Main.getWidth() / 2, parent.location.y - Main.getHeight() / 2);
+            velocity.setMag(magnitude);
+
+            if (child.location != parent.location) {
+                child.location.add(velocity);
+            }
+        }
+    }
+
     public void grow(Blob meal) {
         int sum = (int) (PI *this.radius * this.radius + PI * meal.getRadius()*meal.getRadius());
         this.radius= (int) sqrt(sum/PI);
+    }
+
+    public void name(PApplet app,String name) {
+        app.fill(255);
+        app.textSize(this.radius/2);
+        app.text(name,this.location.x-this.radius,this.location.y);
     }
 
     public PVector getLocation() {
@@ -58,5 +87,13 @@ public class Blob implements Controllable{
 
     public void setEaten(boolean eaten) {
         this.eaten = eaten;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setRadius(int radius) {
+        this.radius = radius;
     }
 }
